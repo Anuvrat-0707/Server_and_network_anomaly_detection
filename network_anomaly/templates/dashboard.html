@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>🌐 Network Anomaly Dashboard - {{ dataset_name }}</title>
+
+    <!-- jQuery + DataTables -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #111;
+            color: #eee;
+        }
+
+        .section {
+            margin: 30px;
+        }
+
+        h1, h2 {
+            color: #f5f5f5;
+        }
+
+        .btn-download {
+            color: white;
+            background: #007bff;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table.dataTable {
+            width: 100% !important;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th, td {
+            border: 1px solid #444;
+            padding: 6px 10px;
+            vertical-align: top;
+            background-color: #1a1a1a;
+            color: #eee;
+            font-size: 13px;
+            text-align: left;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        th {
+            background-color: #222;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            white-space: normal !important;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 200px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #1f1f1f;
+        }
+
+        .explanation-col {
+            min-width: 400px !important;
+            max-width: 600px !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow: visible !important;
+            text-overflow: unset !important;
+        }
+
+        input[type="text"] {
+            background-color: #1e1e1e;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 3px;
+        }
+
+        label {
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="section">
+    <h1>🌐 Network Anomaly Dashboard</h1>
+    <a class="btn-download" href="/download/{{ dataset_name }}">⬇️ Download Dataset</a>
+</div>
+
+<!-- Dataset Table -->
+<div class="section">
+    <h2>📊 Dataset Sample (Top 100 Rows)</h2>
+    <div class="table-container">
+        <table id="datasetTable" class="display nowrap">
+            <thead>
+                <tr>
+                    {% for col in dataset_sample[0].keys() %}
+                        <th class="{% if 'Explanation_Binary' in col or 'Explanation_Multi' in col %}explanation-col{% endif %}">{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in dataset_sample %}
+                    <tr>
+                        {% for col in row.keys() %}
+                            <td class="{% if 'Explanation_Binary' in col or 'Explanation_Multi' in col %}explanation-col{% endif %}">{{ row[col] }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recent Entries -->
+<div class="section">
+    <h2>📁 Recent Network Entries (Last 10 Rows)</h2>
+    {% if recent_dataset %}
+    <div class="table-container">
+        <table id="recentTable" class="display nowrap">
+            <thead>
+                <tr>
+                    {% for col in recent_dataset[0].keys() %}
+                        <th class="{% if 'Explanation_Binary' in col or 'Explanation_Multi' in col %}explanation-col{% endif %}">{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in recent_dataset %}
+                    <tr>
+                        {% for col in row.keys() %}
+                            <td class="{% if 'Explanation_Binary' in col or 'Explanation_Multi' in col %}explanation-col{% endif %}">{{ row[col] }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No recent entries found in dataset.</p>
+    {% endif %}
+</div>
+
+<!-- Manual Prediction Tool -->
+<div class="section">
+    <h2>🛠️ Manual Prediction Tool</h2>
+    <form action="/predict_manual" method="POST">
+        <div style="display: flex; flex-wrap: wrap;">
+            {% for col in [
+                "duration", "protocol_type", "service", "flag", "src_bytes", "dst_bytes", "land",
+                "wrong_fragment", "urgent", "hot", "num_failed_logins", "logged_in", "num_compromised",
+                "root_shell", "su_attempted", "num_root", "num_file_creations", "num_shells",
+                "num_access_files", "num_outbound_cmds", "is_host_login", "is_guest_login", "count",
+                "srv_count", "serror_rate", "srv_serror_rate", "rerror_rate", "srv_rerror_rate",
+                "same_srv_rate", "diff_srv_rate", "srv_diff_host_rate", "dst_host_count",
+                "dst_host_srv_count", "dst_host_same_srv_rate", "dst_host_diff_srv_rate",
+                "dst_host_same_src_port_rate", "dst_host_srv_diff_host_rate", "dst_host_serror_rate",
+                "dst_host_srv_serror_rate", "dst_host_rerror_rate", "dst_host_srv_rerror_rate"
+            ] %}
+                <div style="margin: 10px; min-width: 180px;">
+                    <label>{{ col }}</label><br>
+                    <input type="text" name="{{ col }}" required style="width: 150px; padding: 5px;">
+                </div>
+            {% endfor %}
+        </div>
+        <button type="submit" style="margin-top: 20px; padding: 8px 16px; background-color: green; color: white;">Predict</button>
+    </form>
+</div>
+
+<!-- Model Scores -->
+<div class="section">
+    <h2>📈 Model Performance Scores</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Model Type</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1 Score</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Binary (Normal vs Attack)</td>
+            <td>{{ model_scores.binary.accuracy }}%</td>
+            <td>{{ model_scores.binary.precision }}%</td>
+            <td>{{ model_scores.binary.recall }}%</td>
+            <td>{{ model_scores.binary.f1_score }}%</td>
+        </tr>
+        <tr>
+            <td>Multiclass (DoS, R2L, U2R, Probe)</td>
+            <td>{{ model_scores.multiclass.accuracy }}%</td>
+            <td>{{ model_scores.multiclass.precision }}%</td>
+            <td>{{ model_scores.multiclass.recall }}%</td>
+            <td>{{ model_scores.multiclass.f1_score }}%</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<h2>🔍 Port Scan Detection</h2>
+{% if anomalies %}
+    <ul>
+    {% for ip in anomalies %}
+        <li style="color: red;">⚠️ {{ ip }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No suspicious port scanning activity detected.</p>
+{% endif %}
+
+<h2>🆕 New IPs Detected</h2>
+{% if top_apps %}
+    <ul>
+    {% for ip in top_apps %}
+        <li>{{ ip }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No new IP addresses detected on interfaces.</p>
+{% endif %}
+
+<!-- Attack Descriptions -->
+<div class="section">
+    <h2>🧠 Attack Class Descriptions</h2>
+    <ul>
+        <li><strong>DoS (Denial of Service):</strong> Overwhelms system resources to block legitimate users.</li>
+        <li><strong>R2L (Remote to Local):</strong> Unauthorized access from a remote machine.</li>
+        <li><strong>U2R (User to Root):</strong> Escalates privileges to gain root/admin access.</li>
+        <li><strong>Probe:</strong> Scans systems to discover vulnerabilities.</li>
+        <li><strong>Normal:</strong> Legitimate, expected traffic with no attack patterns.</li>
+    </ul>
+</div>
+
+<!-- Scripts -->
+<script>
+    $(document).ready(function () {
+        $('#datasetTable').DataTable({
+            scrollX: true,
+            autoWidth: false,
+            pageLength: 10,
+            lengthMenu: [5, 10, 25, 50, 100]
+        });
+
+        $('#recentTable').DataTable({
+            scrollX: true,
+            autoWidth: false,
+            paging: false,
+            searching: false,
+            info: false
+        });
+
+        $('#datasetTable thead th, #recentTable thead th').each(function () {
+            $(this).attr('title', $(this).text());
+        });
+    });
+</script>
+
+</body>
+</html>

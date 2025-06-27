@@ -1,0 +1,24 @@
+<!-- templates/home.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Select Dataset</title>
+    <style>
+        body { background: #111; color: #eee; font-family: Arial; padding: 30px; }
+        h1 { color: #fff; }
+        ul { list-style: none; padding-left: 0; }
+        li { margin-bottom: 10px; }
+        a { color: #4dc3ff; text-decoration: none; font-size: 18px; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>📂 Select a Dataset to Analyze</h1>
+    <ul>
+        {% for dataset in datasets %}
+            <li><a href="{{ url_for('dashboard', dataset_name=dataset) }}">{{ dataset }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

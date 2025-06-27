@@ -1,0 +1,14 @@
+{
+    "binary": {
+        "accuracy": 99.97,
+        "precision": 99.98,
+        "recall": 99.96,
+        "f1_score": 99.97
+    },
+    "multiclass": {
+        "accuracy": 99.97,
+        "precision": 99.16,
+        "recall": 99.05,
+        "f1_score": 99.1
+    }
+}

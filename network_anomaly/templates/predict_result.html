@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>🔮 Prediction Result</title>
+    <style>
+        body {
+            background-color: #111;
+            color: #eee;
+            font-family: Arial, sans-serif;
+            padding: 30px;
+        }
+
+        h1, h3 {
+            color: #f5f5f5;
+        }
+
+        ul {
+            list-style-type: square;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+
+        .result {
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 16px;
+            width: fit-content;
+            margin-bottom: 15px;
+        }
+
+        .attack {
+            background-color: #330000;
+            color: #ff4d4d;
+        }
+
+        .normal {
+            background-color: #003300;
+            color: #7CFC00;
+        }
+
+        .back-link {
+            color: #00ffff;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 30px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Manual Prediction Result</h1>
+
+    <h3>📝 Input Features:</h3>
+    <ul>
+        {% for key, value in input_data.items() %}
+            <li><strong>{{ key }}:</strong> {{ value }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3>🔍 Model Predictions:</h3>
+
+    <div class="result {{ 'attack' if binary_pred == 'Attack' else 'normal' }}">
+        <strong>Binary (Normal vs Attack):</strong> {{ binary_pred }}
+    </div>
+
+    <div class="result" style="background-color:#1a1a1a; color:#fff;">
+        <strong>Multiclass Attack Type:</strong> {{ multi_pred }}
+    </div>
+
+    <a href="/" class="back-link">⬅ Back to Dashboard</a>
+</body>
+</html>

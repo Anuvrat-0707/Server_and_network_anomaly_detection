@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Server & Network Anomaly Dashboard</title>
+
+    <!-- Plotly & jQuery & DataTables -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #111;
+            color: #eee;
+        }
+        .section { margin: 30px; }
+        h1, h2 { color: #f5f5f5; }
+        h2 { border-bottom: 2px solid #444; padding-bottom: 5px; }
+
+        .btn-download {
+            color: white;
+            background: #007bff;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .toggle-buttons { margin-bottom: 20px; }
+        .toggle-buttons button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            background-color: #333;
+            border: 1px solid #666;
+            color: white;
+            cursor: pointer;
+        }
+        .toggle-buttons button.active { background-color: #007bff; }
+        .hidden-section { display: none; }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            table-layout: auto;
+        }
+        th, td {
+            border: 1px solid #444;
+            padding: 8px;
+            white-space: nowrap;
+            vertical-align: top;
+            text-align: left;
+        }
+        th { background-color: #333; }
+        tr:nth-child(even) { background-color: #1a1a1a; }
+        .wrap-text {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="section">
+    <h1>🚨 Server & Network Anomaly Detection Dashboard</h1>
+    <a class="btn-download" href="/download/{{ dataset_name }}">⬇️ Download Full Dataset CSV</a>
+</div>
+
+<div class="section toggle-buttons">
+    <button class="toggle-btn active" data-target="server">🖥 Server Anomalies</button>
+    <button class="toggle-btn" data-target="network">🌐 Network Anomalies</button>
+</div>
+
+<!-- ================= SERVER SECTION ================= -->
+<div id="server" class="section active-section">
+    <h2>📊 Server Resource Usage</h2>
+    <div id="usage-chart" class="chart-container"></div>
+
+    <h2>🔥 Top Resource-Consuming App</h2>
+    <table>
+        <tr><th>Metric</th><th>Application</th><th>Usage</th></tr>
+        {% for metric, data in top_apps.items() %}
+        <tr>
+            <td>{{ metric.upper() }}</td>
+            <td>{{ data.name }}</td>
+            <td>{{ data.value }}%</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>⚠️ Recent Server Anomalies</h2>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Anomaly Type</th>
+                <th>Severity</th>
+                <th>Application</th>
+                <th class="wrap-text">LLM Explanation</th>
+                <th>ML Prediction</th>
+                <th>Attack Class</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in explanations %}
+            <tr>
+                <td>{{ row.timestamp }}</td>
+                <td>{{ row.anomaly_type }}</td>
+                <td>{{ row.severity }}</td>
+                <td>{{ row.top_app_name }}</td>
+                <td class="wrap-text">{{ row.explanation }}</td>
+                <td>{{ row.model_prediction }}</td>
+                <td>{{ row.model_class }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h2>🧾 System Event Logs</h2>
+    <table>
+        <thead><tr><th>Time</th><th>Source</th><th>Event ID</th><th>Message</th></tr></thead>
+        <tbody>
+        {% for log in event_logs %}
+        <tr>
+            <td>{{ log.time }}</td>
+            <td>{{ log.source }}</td>
+            <td>{{ log.event_id }}</td>
+            <td>{{ log.message }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- ================= NETWORK SECTION ================= -->
+<div id="network" class="section hidden-section">
+    <h2>📂 Network Dataset Sample (Interactive Table)</h2>
+    <div style="overflow-x: auto;">
+        <table id="datasetTable" class="display nowrap">
+            <thead>
+            <tr>
+                <th>Duration</th><th>Protocol</th><th>Service</th><th>Flag</th>
+                <th>Src Bytes</th><th>Dst Bytes</th><th>Logged In</th>
+                <th>Count</th><th>Srv Count</th><th>Attack</th><th>Last Flag</th>
+                <th>ML Prediction</th><th>Attack Class</th>
+                <th>Binary Explanation</th><th>Attack Class Explanation</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in dataset_sample %}
+            <tr>
+                <td>{{ row.duration }}</td>
+                <td>{{ row.protocol_type }}</td>
+                <td>{{ row.service }}</td>
+                <td>{{ row.flag }}</td>
+                <td>{{ row.src_bytes }}</td>
+                <td>{{ row.dst_bytes }}</td>
+                <td>{{ row.logged_in }}</td>
+                <td>{{ row.count }}</td>
+                <td>{{ row.srv_count }}</td>
+                <td>{{ row.attack }}</td>
+                <td>{{ row.last_flag }}</td>
+                <td>{{ row.Binary_Prediction }}</td>
+                <td>{{ row.Attack_Class }}</td>
+                <td>{{ row.Explanation_Binary }}</td>
+                <td>{{ row.Explanation_Multi }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h2>📁 Recent Network Entries (Last 10 Rows)</h2>
+    {% if recent_dataset %}
+    <div style="overflow-x: auto; max-height: 400px;">
+        <table>
+            <thead><tr>{% for col in recent_dataset[0].keys() %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+            <tbody>
+            {% for row in recent_dataset %}
+            <tr>{% for val in row.values() %}<td>{{ val }}</td>{% endfor %}</tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No recent entries found in dataset.</p>
+    {% endif %}
+
+    <h2>📈 Model Performance Scores</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Model Type</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1 Score</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Binary (Normal vs Attack)</td>
+            <td>{{ model_scores.binary.accuracy }}%</td>
+            <td>{{ model_scores.binary.precision }}%</td>
+            <td>{{ model_scores.binary.recall }}%</td>
+            <td>{{ model_scores.binary.f1_score }}%</td>
+        </tr>
+        <tr>
+            <td>Multiclass (DoS, R2L, U2R, Probe)</td>
+            <td>{{ model_scores.multiclass.accuracy }}%</td>
+            <td>{{ model_scores.multiclass.precision }}%</td>
+            <td>{{ model_scores.multiclass.recall }}%</td>
+            <td>{{ model_scores.multiclass.f1_score }}%</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h2>🧠 Attack Class Descriptions</h2>
+    <ul>
+        <li><strong>DoS (Denial of Service):</strong> Attacks that exhaust resources to block legitimate access.</li>
+        <li><strong>R2L (Remote to Local):</strong> Attempts to gain unauthorized access from remote systems.</li>
+        <li><strong>U2R (User to Root):</strong> Tries to escalate privileges from user to root/admin.</li>
+        <li><strong>Probe:</strong> Scans network to gather sensitive information or find vulnerabilities.</li>
+        <li><strong>Normal:</strong> Legitimate, benign traffic.</li>
+    </ul>
+</div>
+
+<!-- ================== SCRIPTS ================== -->
+<script>
+    var cpu = {{ metrics['cpu'] | tojson }};
+    var memory = {{ metrics['memory'] | tojson }};
+    var disk = {{ metrics['disk'] | tojson }};
+    var timestamps = {{ metrics['timestamp'] | tojson }};
+
+    Plotly.newPlot("usage-chart", [
+        { x: timestamps, y: cpu, name: "CPU", type: "scatter", line: { color: "red" } },
+        { x: timestamps, y: memory, name: "Memory", type: "scatter", line: { color: "green" } },
+        { x: timestamps, y: disk, name: "Disk", type: "scatter", line: { color: "orange" } }
+    ], {
+        margin: { t: 30 },
+        paper_bgcolor: "#111",
+        plot_bgcolor: "#111",
+        font: { color: "#eee" },
+        xaxis: { title: "Time", tickangle: -45 },
+        yaxis: { title: "Usage (%)" }
+    });
+
+    $(document).ready(function () {
+        $('#datasetTable').DataTable({
+            scrollX: true,
+            autoWidth: false,
+            pageLength: 10,
+            lengthMenu: [5, 10, 25, 50, 100],
+            columnDefs: [{ targets: '_all', className: 'dt-nowrap' }]
+        });
+
+        $(".toggle-btn").click(function () {
+            $(".toggle-btn").removeClass("active");
+            $(this).addClass("active");
+
+            $(".section").removeClass("active-section").addClass("hidden-section");
+            $("#" + $(this).data("target")).removeClass("hidden-section").addClass("active-section");
+        });
+    });
+</script>
+</body>
+</html>
